@@ -47,7 +47,6 @@ Logs in to the AWS ECR registry using the configured credentials.
 ### Requirements
 * Docker
 * An AWS ECR repository
-* GitHub repository with the Dockerfile and Golang application code
 ### Getting Started
     1) Clone the repository to your local machine.
     2) Build the Docker image locally: docker build -t <image_name> ..

@@ -38,3 +38,24 @@ jobs:
         IMAGE_TAG: latest
       run:
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+    - name: Deploy image to EC2 instance
+      env:
+        REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        REPOSITORY: go-app
+        IMAGE_TAG: latest
+        AWS_DEFAULT_REGION: us-east-1
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ env.SERVER_PUBLIC_IP }}
+        username: ubuntu
+        key: ${{ env.PRIVATE_SSH_KEY }}
+        envs: PRIVATE_SSH_KEY,REGISTRY, REPOSITORY, IMAGE_TAG, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_DEFAULT_REGION
+        scripts: |- 
+          sudo apt update
+          sudo apt install docker.io -y
+          sudo apt install awscli -y
+          sudo $(aws ecr get-login --no-include-email --region us-east-1);
+          sudo docker stop goappcontainer || true
+          sudo docker rm goappcontainer || true
+          sudo docker pull $REGISTRY/$REPOSITORY:$IMAGE_TAG
+          sudo docker run -d --name goappcontainer -p 5000:5000  $REGISTRY/$REPOSITORY:$IMAGE_TAG
